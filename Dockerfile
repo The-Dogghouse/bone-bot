@@ -11,7 +11,9 @@ RUN python -m venv /bot/venv && \
     /bot/venv/bin/pip install --upgrade pip && \
     /bot/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-COPY resources/ .
+# Fix the miserable default behavior of copying
+# the _contents only_ of `resources/` to `/app`
+COPY resources/ resources/
 COPY *.py .
 COPY rusty-sussy/target/release/rusty-sussy .
 
