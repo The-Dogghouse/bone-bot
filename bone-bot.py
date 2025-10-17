@@ -275,6 +275,13 @@ def find_sussy():
 
 
 if __name__ == "__main__":
+    logger.remove()
+    logger.add(
+        sink=sys.stderr,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+        colorize=True,
+    )
+
     logger.info(f"Starting Bone Bot v{BOT_VERSION}")
 
     token = ""
