@@ -11,7 +11,8 @@ RUN python -m venv /bot/venv && \
     /bot/venv/bin/pip install --upgrade pip && \
     /bot/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-COPY --exclude=.venv/ --exclude=rusty-sussy/ --exclude=docker-compose.yml . .
+COPY resources/ .
+COPY *.py .
 COPY rusty-sussy/target/release/rusty-sussy .
 
 
