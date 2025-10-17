@@ -1,0 +1,23 @@
+[Unit]
+Description=Run the Bone Bot
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/bone-bot
+
+ExecStartPre=/usr/bin/docker-compose down
+ExecStartPre=/usr/bin/docker buildx build --tag bone-bot .
+
+ExecStart=/usr/bin/docker-compose up
+ExecStop=/usr/bin/docker-compose down
+
+Restart=always
+RestartSec=3600s
