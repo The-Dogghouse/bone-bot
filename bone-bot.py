@@ -10,9 +10,10 @@ from tempfile import TemporaryDirectory
 import subprocess
 from shutil import which
 from pathlib import Path
+from PIL import Image
 import io
 
-BOT_VERSION = "0.2.0"
+BOT_VERSION = "0.2.1"
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -106,14 +107,21 @@ async def on_message(message: discord.Message):
 
 async def sus_image(image: discord.Attachment, width: int) -> Optional[io.BytesIO]:
     with TemporaryDirectory() as tmp_dir:
-        input_path = tmp_dir + "/" + image.filename
+        input_path = tmp_dir + "/" + "input.png"
         output_path = tmp_dir + "/output.gif"
 
-        logger.info(f"Saving input image `{image.filename}` to `{input_path}`")
+        logger.info(
+            f"Converting and saving input image `{image.filename}` to `{input_path}`"
+        )
+        input_bytes = await image.read()
 
-        image_bytes = await image.read()
-        with open(input_path, "wb") as f:
-            f.write(image_bytes)
+        try:
+            attachment = Image.open(io.BytesIO(input_bytes))
+            with open(input_path, "wb") as f:
+                attachment.save(f, format="PNG", compress_level=1)
+        except Exception as e:
+            logger.error(f"Failed to convert input image to PNG: {e}")
+            return None
 
         logger.info(f"Input image saved to `{input_path}`, running `rusty-sussy`")
 
