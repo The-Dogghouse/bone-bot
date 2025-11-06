@@ -13,7 +13,7 @@ from pathlib import Path
 from PIL import Image
 import io
 
-BOT_VERSION = "0.2.1"
+BOT_VERSION = "0.2.2"
 
 intents = discord.Intents.default()
 intents.message_content = True

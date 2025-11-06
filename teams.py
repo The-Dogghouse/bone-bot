@@ -71,6 +71,8 @@ def format_teams(t: TeamsContainer) -> str:
     for team in t.teams:
         result += f"Team {i}: {team.name}\n"
         result += "\n".join([m.mention for m in team.members])
+        result += "\n\n"
+        i += 1
 
     if t.extras:
         result += f"Extras: {t.extras.name}\n"
