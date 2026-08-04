@@ -54,12 +54,13 @@ docker buildx build --tag bone-bot .
 
 ### Deploy with docker-compose
 ```shell
-docker-compose up
+docker compose up
 ```
 
 ## Development
 ### Requirements
 * Python 3.13
+* [`uv`](https://docs.astral.sh/uv/)
 * (Optional) Rust (for `bone-sus`) uses [rusty-sussy](https://github.com/The-Dogghouse/rusty-sussy)
   * Gifski: https://gif.ski/
 * An API Key from Discord
@@ -79,6 +80,18 @@ in the root of the project:
 ```shell
 git submodule init
 git submodule update
+```
+
+### Python
+
+Install [`uv`](https://docs.astral.sh/uv/) and `sync`
+```shell
+uv sync
+```
+
+### Run
+```shell
+uv run bone-bot.py
 ```
 
 ### rusty-sussy
