@@ -8,7 +8,7 @@ WORKDIR /bot
 
 COPY pyproject.toml .
 COPY uv.lock .
-RUN uv sync
+RUN uv sync --no-dev
 
 # Fix the miserable default behavior of copying
 # the _contents only_ of `resources/` to `/app`

@@ -1,17 +1,18 @@
+import io
+import os
+import random
+import subprocess
+import sys
+from pathlib import Path
+from shutil import which
+from tempfile import TemporaryDirectory
+
 import discord
 from discord import app_commands
-import random
-from typing import List, Optional
-from teams import format_teams, generate_teams, TeamsContainer
 from loguru import logger
-import os
-import sys
-from tempfile import TemporaryDirectory
-import subprocess
-from shutil import which
-from pathlib import Path
 from PIL import Image
-import io
+
+from teams import TeamsContainer, format_teams, generate_teams
 
 BOT_VERSION = "0.2.2"
 
@@ -41,9 +42,7 @@ async def on_message(message: discord.Message):
     if message.author == client.user:
         return
 
-    if client.user not in message.mentions and not isinstance(
-        message.channel, discord.DMChannel
-    ):
+    if client.user not in message.mentions and not isinstance(message.channel, discord.DMChannel):
         return
 
     if client.user in message.mentions:
@@ -66,31 +65,28 @@ async def on_message(message: discord.Message):
     else:
         logger.info(f"Bot direct messaged by {message.author}")
 
-        if (
-            len(message.message_snapshots) > 0
-            and len(message.message_snapshots[0].attachments) > 0
-        ):
+        if len(message.message_snapshots) > 0 and len(message.message_snapshots[0].attachments) > 0:
             logger.info(f"DM message {message} is a forward with an attachment")
             attachment = message.message_snapshots[0].attachments[0]
         elif len(message.attachments) > 0:
             logger.info(f"DM message {message} has an attachment")
             attachment = message.attachments[0]
         else:
-            logger.info(
-                f"DM message {message} has no attachments and is not a forward with attachments, 'woof'-ing"
-            )
+            logger.info(f"DM message {message} has no attachments and is not a forward with attachments, 'woof'-ing")
             await message.reply("Woof")
             return
 
     if not attachment.content_type or not attachment.content_type.startswith("image/"):
         logger.info(
-            f"Attachment`{attachment}` from message `{message}` content type was not image, got `{attachment.content_type}`, ignoring"
+            f"Attachment`{attachment}` from message `{message}` content type was not image, got"
+            f"`{attachment.content_type}`, ignoring"
         )
 
         # Yes, we're really getting this petty
         vowels = ["a", "e", "i", "o", "u"]
         await message.reply(
-            f"That doesn't smell like an image. It smells like a{'n' if attachment.content_type[0].lower() in vowels else ''} `{attachment.content_type}`"
+            f"That doesn't smell like an image. It smells like a "
+            f"{'n' if attachment.content_type[0].lower() in vowels else ''} `{attachment.content_type}`"
         )
         return
 
@@ -105,14 +101,12 @@ async def on_message(message: discord.Message):
     await message.reply(file=discord.File(sus_buffer, filename="sussed.gif"))
 
 
-async def sus_image(image: discord.Attachment, width: int) -> Optional[io.BytesIO]:
+async def sus_image(image: discord.Attachment, width: int) -> io.BytesIO | None:
     with TemporaryDirectory() as tmp_dir:
         input_path = tmp_dir + "/" + "input.png"
         output_path = tmp_dir + "/output.gif"
 
-        logger.info(
-            f"Converting and saving input image `{image.filename}` to `{input_path}`"
-        )
+        logger.info(f"Converting and saving input image `{image.filename}` to `{input_path}`")
         input_bytes = await image.read()
 
         try:
@@ -138,10 +132,10 @@ async def sus_image(image: discord.Attachment, width: int) -> Optional[io.BytesI
         if sussy_result.returncode != 0:
             logger.error(
                 f"Failed running 'bone-sus' with "
-                "`image`: `{image}`, "
-                "`width`: `{width}`, "
-                "`stderr`: `{sussy_result.stderr}`, "
-                "`stdout`: `{sussy_result.stdout}`"
+                f"`image`: `{image}`, "
+                f"`width`: `{width}`, "
+                f"`stderr`: `{sussy_result.stderr}`, "
+                f"`stdout`: `{sussy_result.stdout}`"
             )
             return None
 
@@ -157,8 +151,8 @@ async def sus_image(image: discord.Attachment, width: int) -> Optional[io.BytesI
 async def teams(
     interaction: discord.Interaction,
     channel: discord.VoiceChannel,
-    team_size: Optional[int] = None,
-    team_count: Optional[int] = None,
+    team_size: int | None = None,
+    team_count: int | None = None,
 ):
     logger.info(
         f"Running 'bone-teams' for '{interaction.user.display_name}' "
@@ -167,9 +161,7 @@ async def teams(
 
     if len(channel.members) == 0:
         logger.info(f"Channel: {channel} has no members, sending error message")
-        await interaction.response.send_message(
-            f"No members in {channel.name}", ephemeral=True
-        )
+        await interaction.response.send_message(f"No members in {channel.name}", ephemeral=True)
         return
 
     if not team_size and team_count:
@@ -179,7 +171,7 @@ async def teams(
     name_teams(t)
     response = format_teams(t)
 
-    logger.info(f"Teams generated, sending response")
+    logger.info("Teams generated, sending response")
     await interaction.response.send_message(response)
 
 
@@ -201,58 +193,42 @@ Our versioning scheme <https://0ver.org/>
 
 def name_teams(t: TeamsContainer):
     for team in t.teams:
-        team.name = (
-            f"{random.choice(adjectives).title()} {random.choice(nouns_plural).title()}"
-        )
+        team.name = f"{random.choice(adjectives).title()} {random.choice(nouns_plural).title()}"
 
     if t.extras is not None:
-        t.extras.name = (
-            f"{random.choice(adjectives).title()} {random.choice(nouns_plural).title()}"
-        )
+        t.extras.name = f"{random.choice(adjectives).title()} {random.choice(nouns_plural).title()}"
 
 
 @tree.command(name="bone-sus", description="Bring the crew-mates in on an image")
-@app_commands.describe(
-    image="Image to sussify", width="Number of horizontal crew-mates per row"
-)
-async def bone_sus(
-    interaction: discord.Interaction, image: discord.Attachment, width: Optional[int]
-):
+@app_commands.describe(image="Image to sussify", width="Number of horizontal crew-mates per row")
+async def bone_sus(interaction: discord.Interaction, image: discord.Attachment, width: int | None):
     await interaction.response.defer(thinking=True)
-    logger.info(
-        f"Running 'bone-sus' for {interaction.user.display_name} with `image`: `{image}`, `width`: `{width}`"
-    )
+    logger.info(f"Running 'bone-sus' for {interaction.user.display_name} with `image`: `{image}`, `width`: `{width}`")
 
     if rusty_sussy_path is None:
-        await interaction.followup.send(
-            "`rusty-sussy` not installed sussy baka!", ephemeral=True
-        )
+        await interaction.followup.send("`rusty-sussy` not installed sussy baka!", ephemeral=True)
         return
 
     if width is None:
         width = 21  # the default from `rusty-sussy`
 
     if not image.content_type or not image.content_type.startswith("image/"):
-        await interaction.followup.send(
-            "I need an image you sussy baka!", ephemeral=True
-        )
+        await interaction.followup.send("I need an image you sussy baka!", ephemeral=True)
         return
 
     result_buffer = await sus_image(image, width)
 
     if result_buffer is None:
-        await interaction.followup.send(f"Error sussing image!", ephemeral=True)
+        await interaction.followup.send("Error sussing image!", ephemeral=True)
         return
 
-    logger.info(
-        f"Successfully sussed `{image}`, replying to {interaction.user.display_name}"
-    )
+    logger.info(f"Successfully sussed `{image}`, replying to {interaction.user.display_name}")
 
     discord_file = discord.File(result_buffer, filename="sussed.gif")
     await interaction.followup.send(file=discord_file)
 
 
-def read_file(file: str) -> List[str]:
+def read_file(file: str) -> list[str]:
     logger.info(f"Reading `{file}`")
     with open(file) as file:
         return [line.rstrip() for line in file]
@@ -286,7 +262,9 @@ if __name__ == "__main__":
     logger.remove()
     logger.add(
         sink=sys.stderr,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+        "<level>{level: <8}</level> | "
+        "<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
         colorize=True,
     )
 
@@ -299,9 +277,7 @@ if __name__ == "__main__":
             logger.error("Specify the real token please")
             sys.exit(1)
     else:
-        logger.error(
-            "Specify the Discord token in the `BONE_TOKEN` environment variable"
-        )
+        logger.error("Specify the Discord token in the `BONE_TOKEN` environment variable")
         sys.exit(1)
 
     logger.info("Reading in words")

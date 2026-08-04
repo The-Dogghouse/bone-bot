@@ -64,7 +64,7 @@ docker compose up
 * (Optional) Rust (for `bone-sus`) uses [rusty-sussy](https://github.com/The-Dogghouse/rusty-sussy)
   * Gifski: https://gif.ski/
 * An API Key from Discord
-* [black](https://github.com/psf/black)
+* [ruff](https://docs.astral.sh/ruff/)
 
 ### Cloning
 You'll need to do a recursive clone since we've got a submodule
@@ -109,9 +109,10 @@ cargo build --release
 ```
 
 ### Style
-Run [black](https://github.com/psf/black) on it and don't think about it
+Run [ruff](https://docs.astral.sh/ruff/) on it and don't think about it
 ```shell
-black *.py
+uv run ruff format .
+uv run ruff check .
 ```
 
 ### Tests

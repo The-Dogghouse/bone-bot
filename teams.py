@@ -1,4 +1,3 @@
-from typing import List, Optional
 import math
 import random
 
@@ -14,16 +13,14 @@ class Team:
 
 class TeamsContainer:
     def __init__(self):
-        self.teams: List[Team] = []
-        self.extras: Optional[Team] = None
+        self.teams: list[Team] = []
+        self.extras: Team | None = None
 
     def __len__(self):
         return len(self.teams)
 
 
-def generate_teams(
-    members, size: Optional[int] = None, team_count: Optional[int] = None
-) -> TeamsContainer:
+def generate_teams(members, size: int | None = None, team_count: int | None = None) -> TeamsContainer:
     result = TeamsContainer()
 
     random.shuffle(members)

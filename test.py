@@ -1,4 +1,5 @@
 import unittest
+
 from teams import generate_teams
 
 
@@ -7,7 +8,6 @@ def example_members():
 
 
 class TestTeams(unittest.TestCase):
-
     def test_size(self):
         m = example_members()
 
