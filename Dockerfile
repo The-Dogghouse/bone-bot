@@ -17,4 +17,4 @@ COPY *.py .
 COPY rusty-sussy/target/release/rusty-sussy .
 
 
-ENTRYPOINT ["uv", "run", "bone-bot.py"]
+ENTRYPOINT ["uv", "run", "--no-dev", "bone-bot.py"]
