@@ -94,6 +94,31 @@ uv sync
 uv run bone-bot.py
 ```
 
+### Database
+The bot uses Postgres through [SQLAlchemy](https://www.sqlalchemy.org/)
+with [Alembic](https://alembic.sqlalchemy.org/) for migrations.
+
+The connection URL comes from `BONE_DATABASE_URL_FILE` or the
+`BONE_DATABASE_URL` environment variable, the same way the Discord token does.
+A plain `postgresql://` URL is fine; the `+asyncpg` driver is filled in for you.
+
+Start just the database:
+```shell
+docker compose up -d postgres
+```
+
+Apply migrations:
+```shell
+BONE_DATABASE_URL="postgresql://bone:bone@127.0.0.1:5432/bone" uv run alembic upgrade head
+```
+
+After changing anything in `models.py`, generate a migration:
+```shell
+BONE_DATABASE_URL="..." uv run alembic revision --autogenerate -m "What changed"
+```
+
+`alembic check` will tell you whether your models have drifted from the migrations.
+
 ### rusty-sussy
 To enable the `bone-sus` command, you'll need to
 build `rusty-sussy`.

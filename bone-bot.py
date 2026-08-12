@@ -1,5 +1,4 @@
 import io
-import os
 import random
 import subprocess
 import sys
@@ -12,6 +11,9 @@ from discord import app_commands
 from loguru import logger
 from PIL import Image
 
+from config import GAMING_CHANNEL_ID, DOGGHOUSE_GUILD_ID, database_url, read_secret
+from db import dispose_engine, init_engine, session
+from models import ChannelJoin
 from teams import TeamsContainer, format_teams, generate_teams
 
 BOT_VERSION = "0.2.2"
@@ -20,7 +22,22 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-client = discord.Client(intents=intents)
+
+class BoneClient(discord.Client):
+    async def setup_hook(self):
+        url = database_url()
+        if url is None:
+            logger.warning("No database URL configured, starting without a database")
+            return
+
+        init_engine(url)
+
+    async def close(self):
+        await dispose_engine()
+        await super().close()
+
+
+client = BoneClient(intents=intents)
 tree = app_commands.CommandTree(client)
 
 adjectives = []
@@ -35,6 +52,27 @@ rusty_sussy_path = None
 async def on_ready():
     await tree.sync()
     logger.info(f"Bot logged in as {client.user}")
+
+
+@client.event
+async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+    # Fires for mutes, deafens and streams too, so only a change of channel is a join
+    if before.channel == after.channel:
+        return
+
+    if after.channel is None or after.channel.id != GAMING_CHANNEL_ID or member.guild.id != DOGGHOUSE_GUILD_ID:
+        return
+
+    logger.info(f"{member.display_name} joined tracked channel `{after.channel.name}` in `{member.guild.name}`")
+    await record_join(member, after.channel)
+
+
+async def record_join(member: discord.Member, channel: discord.abc.GuildChannel):
+    try:
+        async with session() as s:
+            s.add(ChannelJoin(user_id=member.id, guild_id=member.guild.id, channel_id=channel.id))
+    except Exception as e:
+        logger.error(f"Failed recording join of `{member.display_name}` to `{channel.id}`: {e}")
 
 
 @client.event
@@ -232,20 +270,6 @@ def read_file(file: str) -> list[str]:
     logger.info(f"Reading `{file}`")
     with open(file) as file:
         return [line.rstrip() for line in file]
-
-
-def read_secret(name: str) -> str | None:
-    path = os.environ.get(f"{name}_FILE")
-    if path is None:
-        logger.error(f"No secret in `{name}_FILE`: trying the {name} environment variable")
-        return os.environ.get(name)
-
-    logger.info(f"Reading `{name}` from `{path}`")
-    try:
-        return Path(path).read_text().strip()
-    except OSError as e:
-        logger.error(f"Failed reading `{name}` from `{path}`: {e}")
-        return None
 
 
 def find_sussy():
