@@ -11,7 +11,7 @@ from discord import app_commands
 from loguru import logger
 from PIL import Image
 
-from config import GAMING_CHANNEL_ID, DOGGHOUSE_GUILD_ID, database_url, read_secret
+from config import DOGGHOUSE_GUILD_ID, GAMING_CHANNEL_ID, database_url, read_secret
 from db import dispose_engine, init_engine, session
 from models import ChannelJoin
 from teams import TeamsContainer, format_teams, generate_teams
