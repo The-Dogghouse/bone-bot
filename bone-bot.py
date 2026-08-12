@@ -234,6 +234,20 @@ def read_file(file: str) -> list[str]:
         return [line.rstrip() for line in file]
 
 
+def read_secret(name: str) -> str | None:
+    path = os.environ.get(f"{name}_FILE")
+    if path is None:
+        logger.error(f"No secret in `{name}_FILE`: trying the {name} environment variable")
+        return os.environ.get(name)
+
+    logger.info(f"Reading `{name}` from `{path}`")
+    try:
+        return Path(path).read_text().strip()
+    except OSError as e:
+        logger.error(f"Failed reading `{name}` from `{path}`: {e}")
+        return None
+
+
 def find_sussy():
     logger.info("Detecting `rusty-sussy` path")
 
@@ -270,14 +284,16 @@ if __name__ == "__main__":
 
     logger.info(f"Starting Bone Bot v{BOT_VERSION}")
 
-    token = ""
-    if "BONE_TOKEN" in os.environ:
-        token = os.environ["BONE_TOKEN"]
-        if len(token) > 255 and token.find("VmFwb3Jlb24") != -1:
-            logger.error("Specify the real token please")
-            sys.exit(1)
-    else:
-        logger.error("Specify the Discord token in the `BONE_TOKEN` environment variable")
+    token = read_secret("BONE_TOKEN")
+    if not token:
+        logger.error(
+            "Specify the Discord token in the file named by `BONE_TOKEN_FILE`, "
+            "or in the `BONE_TOKEN` environment variable"
+        )
+        sys.exit(1)
+
+    if len(token) > 255 and "VmFwb3Jlb24" in token:
+        logger.error("Specify the real token please")
         sys.exit(1)
 
     logger.info("Reading in words")
